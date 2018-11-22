@@ -15,8 +15,6 @@ import (
 const DisplaySubscriptions = 1
 
 type Engine struct {
-	Host        string
-	Port        int
 	HttpClient  *http.Client
 	Uri         string
 	Conns       int
@@ -27,10 +25,9 @@ type Engine struct {
 	ShutdownCh  chan struct{}
 }
 
-func NewEngine(host string, port int, conns int, delay int) *Engine {
+func NewEngine(uri string, conns int, delay int) *Engine {
 	return &Engine{
-		Host:       host,
-		Port:       port,
+		Uri:        uri,
 		Conns:      conns,
 		Delay:      delay,
 		StatsCh:    make(chan *Stats),
@@ -210,7 +207,6 @@ func (engine *Engine) SetupHTTPS(caCertOpt, certOpt, keyOpt string, skipVerifyOp
 
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	engine.HttpClient = &http.Client{Transport: transport}
-	engine.Uri = fmt.Sprintf("https://%s:%d", engine.Host, engine.Port)
 
 	return nil
 }
@@ -218,8 +214,6 @@ func (engine *Engine) SetupHTTPS(caCertOpt, certOpt, keyOpt string, skipVerifyOp
 // SetupHTTP sets up the http client and uri to use for polling.
 func (engine *Engine) SetupHTTP() {
 	engine.HttpClient = &http.Client{}
-	engine.Uri = fmt.Sprintf("http://%s:%d", engine.Host, engine.Port)
-
 	return
 }
 

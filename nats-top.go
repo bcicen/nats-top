@@ -18,8 +18,7 @@ import (
 const version = "0.3.2"
 
 var (
-	host        = flag.String("s", "127.0.0.1", "The nats server host.")
-	port        = flag.Int("m", 8222, "The NATS server monitoring port.")
+	host        = flag.String("s", "http://127.0.0.1:8222", "The nats server host and monitoring port")
 	conns       = flag.Int("n", 1024, "Maximum number of connections to poll.")
 	delay       = flag.Int("d", 1, "Refresh interval in seconds.")
 	sortBy      = flag.String("sort", "cid", "Value for which to sort by the connections.")
@@ -27,7 +26,6 @@ var (
 	lookupDNS   = flag.Bool("lookup", false, "Enable client addresses DNS lookup.")
 
 	// Secure options
-	httpsPort     = flag.Int("ms", 0, "The NATS server secure monitoring port.")
 	certOpt       = flag.String("cert", "", "Client cert in case NATS server using TLS")
 	keyOpt        = flag.String("key", "", "Client private key in case NATS server using TLS")
 	caCertOpt     = flag.String("cacert", "", "Root CA cert")
@@ -49,7 +47,7 @@ var (
 	defaultRowFormat    = "%-6d  %-10s  %-10s  %-10s  %-10s  %-10s  %-7s  %-7s  %-7s  %-40s"
 
 	usageHelp = `
-usage: nats-top [-s server] [-m http_port] [-ms https_port] [-n num_connections] [-d delay_secs] [-sort by]
+usage: nats-top [-s server] [-n num_connections] [-d delay_secs] [-sort by]
                 [-cert FILE] [-key FILE ][-cacert FILE] [-k]
 
 `
@@ -76,27 +74,16 @@ func main() {
 
 	var engine *top.Engine
 
-	// Use secure port if set explicitly, otherwise use http port by default
-	if *httpsPort != 0 {
-		engine = top.NewEngine(*host, *httpsPort, *conns, *delay)
+	engine = top.NewEngine(*host, *conns, *delay)
+	if strings.HasPrefix(*host, "https") {
+		engine = top.NewEngine(*host, *conns, *delay)
 		err := engine.SetupHTTPS(*caCertOpt, *certOpt, *keyOpt, *skipVerifyOpt)
 		if err != nil {
 			log.Printf("nats-top: %s", err)
 			usage()
 		}
 	} else {
-		engine = top.NewEngine(*host, *port, *conns, *delay)
 		engine.SetupHTTP()
-	}
-
-	if engine.Host == "" {
-		log.Printf("nats-top: invalid monitoring endpoint")
-		usage()
-	}
-
-	if engine.Port == 0 {
-		log.Printf("nats-top: invalid monitoring port")
-		usage()
 	}
 
 	// Smoke test to abort in case can't connect to server since the beginning.
