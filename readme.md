@@ -40,13 +40,13 @@ and releases of the binary are also [available](https://github.com/nats-io/nats-
 ## Usage
 
 ```
-usage: nats-top [-s server] [-m http_port] [-ms https_port] [-n num_connections] [-d delay_secs] [-sort by]
+usage: nats-top [-s server] [-n num_connections] [-d delay_secs] [-sort by]
                 [-cert FILE] [-key FILE ][-cacert FILE] [-k]
 ```
 
-- `-m http_port`, `-ms https_port`
+- `-s server`
 
-  Monitoring http and https ports from the NATS server.
+  Server URL to monitor (default: `http://127.0.0.1:8222)
 
 - `-n num_connections`
 
